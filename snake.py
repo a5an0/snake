@@ -130,11 +130,11 @@ def make_game_object(image_file):
     return GameObject
 
 
-Apple = make_game_object('apple.png')
+Apple = make_game_object('assets/apple.png')
 
-WallSegment = make_game_object('wall.png')
+WallSegment = make_game_object('assets/wall.png')
 
-SnakeSegment = make_game_object('snake_body.png')
+SnakeSegment = make_game_object('assets/snake_body.png')
 
 class Snake:
     def __init__(self, level, x=CELL_SIZE, y=window.height//2, tail_len=3):
@@ -143,10 +143,10 @@ class Snake:
         self._x = self.x
         self.y = y
         self._y = self.y
-        self.left_image = pyglet.image.load('snake_head_left.png')
-        self.right_image = pyglet.image.load('snake_head_right.png')
-        self.up_image = pyglet.image.load('snake_head_up.png')
-        self.down_image = pyglet.image.load('snake_head_down.png')
+        self.left_image = pyglet.image.load('assets/snake_head_left.png')
+        self.right_image = pyglet.image.load('assets/snake_head_right.png')
+        self.up_image = pyglet.image.load('assets/snake_head_up.png')
+        self.down_image = pyglet.image.load('assets/snake_head_down.png')
         self.sprite = pyglet.sprite.Sprite(self.right_image, x, y)
         self.xdir = 1
         self.ydir = 0
