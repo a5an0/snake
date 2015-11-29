@@ -38,15 +38,19 @@ class Game:
         if symbol == key.LEFT:
             self.snake.xdir = -1
             self.snake.ydir = 0
+            self.snake.face_left()
         elif symbol == key.RIGHT:
             self.snake.xdir = 1
             self.snake.ydir = 0
+            self.snake.face_right()
         elif symbol == key.UP:
             self.snake.xdir = 0
             self.snake.ydir = 1
+            self.snake.face_up()
         elif symbol == key.DOWN:
             self.snake.xdir = 0
             self.snake.ydir = -1
+            self.snake.face_down()
         elif symbol == key.ENTER:
             if self.game_over or self.win:
                 self.reset()
@@ -87,9 +91,9 @@ class Level:
 
     def draw(self):
         for w in self.walls:
-            w.image.blit(w.x, w.y)
+            w.sprite.draw()
         for a in self.apples.values():
-            a.image.blit(a.x,a.y)    
+            a.sprite.draw()
 
         
     @classmethod
@@ -115,20 +119,22 @@ class Level:
         return cls(walls, apples, collidables)
 
 
-class Sprite:
-    image = pyglet.resource.image
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        
-class Apple(Sprite):
-    image = pyglet.resource.image('apple.png')
+def make_game_object(image_file):
+    class GameObject:
+        image = pyglet.image.load(image_file)
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+            self.sprite = pyglet.sprite.Sprite(self.image, x, y)
+            # TODO: add batch rendering (see https://pyglet.readthedocs.org/en/pyglet-1.2-maintenance/api/pyglet/pyglet.sprite.html#drawing-multiple-sprites)
+    return GameObject
 
-class WallSegment(Sprite):
-    image = pyglet.resource.image('wall.png')
-    
-class SnakeSegment(Sprite):
-    image = pyglet.resource.image('smile_icon.png')
+
+Apple = make_game_object('apple.png')
+
+WallSegment = make_game_object('wall.png')
+
+SnakeSegment = make_game_object('snake_body.png')
 
 class Snake:
     def __init__(self, level, x=CELL_SIZE, y=window.height//2, tail_len=3):
@@ -137,7 +143,11 @@ class Snake:
         self._x = self.x
         self.y = y
         self._y = self.y
-        self.image = pyglet.resource.image('smile_icon.png')
+        self.left_image = pyglet.image.load('snake_head_left.png')
+        self.right_image = pyglet.image.load('snake_head_right.png')
+        self.up_image = pyglet.image.load('snake_head_up.png')
+        self.down_image = pyglet.image.load('snake_head_down.png')
+        self.sprite = pyglet.sprite.Sprite(self.right_image, x, y)
         self.xdir = 1
         self.ydir = 0
         self.tail = []
@@ -153,6 +163,7 @@ class Snake:
             self.update_tail()
             self.x = rounded_x
             self.y = rounded_y
+            self.sprite.set_position(self.x, self.y)
 
     def update_tail(self):
         if self.tail == [] or self.tail[0].x != self.x or self.tail[0].y != self.y:
@@ -163,10 +174,23 @@ class Snake:
                 del(self.level.collidables[(old_segment.x, old_segment.y)])
 
     def draw(self):
-        self.image.blit(self.x, self.y)
+        self.sprite.draw()
         for s in self.tail:
-            s.image.blit(s.x, s.y)
+            s.sprite.draw()
 
+    def face_left(self):
+        self.sprite.image = self.left_image
+        
+    def face_right(self):
+        self.sprite.image = self.right_image
+        
+    def face_up(self):
+        self.sprite.image = self.up_image
+        
+    def face_down(self):
+        self.sprite.image = self.down_image
+
+        
 
 game = Game('level.txt')
 
