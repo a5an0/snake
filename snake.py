@@ -8,10 +8,6 @@ MOVE_SPEED = 3
 
 window = pyglet.window.Window()
 
-game_over = False
-win = False
-score = 0
-
 game_over_label = pyglet.text.Label('Game Over',
                                     font_name='Times New Roman',
                                     font_size=36,
@@ -26,7 +22,63 @@ score_label = pyglet.text.Label(font_name='Times New Roman',
                                 font_size=24,
                                 x=window.width * 0.75, y=window.height * 0.9,
                                 anchor_x='center', anchor_y='center')
+class Game:
+    def __init__(self, level_file_name):
+        self.level_file_name = level_file_name
+        self.reset()
+        
+    def reset(self):
+        self.game_over = False
+        self.win = False
+        self.score = 0
+        self.level = Level.from_file(self.level_file_name)
+        self.snake = Snake(self.level)
 
+    def handle_key_press(self, symbol, modifiers):
+        if symbol == key.LEFT:
+            self.snake.xdir = -1
+            self.snake.ydir = 0
+        elif symbol == key.RIGHT:
+            self.snake.xdir = 1
+            self.snake.ydir = 0
+        elif symbol == key.UP:
+            self.snake.xdir = 0
+            self.snake.ydir = 1
+        elif symbol == key.DOWN:
+            self.snake.xdir = 0
+            self.snake.ydir = -1
+        elif symbol == key.ENTER:
+            if self.game_over or self.win:
+                self.reset()
+
+    def draw_handler(self, window):
+        def draw():
+            window.clear()
+            self.level.draw()
+            self.snake.draw()
+            score_label.text = "Score: %d" % self.score
+            score_label.draw()
+            if self.game_over:
+                game_over_label.draw()
+            if self.win:
+                win_label.draw()
+        return draw
+
+    def update(self, dt):
+        if not self.game_over and not self.win:
+            if (self.snake.x, self.snake.y) in self.level.apples.keys():
+                del(self.level.apples[(self.snake.x, self.snake.y)])
+                self.snake.tail_len += 1
+                self.score += 1
+                if self.level.apples == {}:
+                    self.win = True
+            if (self.snake.x, self.snake.y) in self.level.collidables.keys():
+                self.game_over = True
+                return
+            self.snake.update(dt)
+
+                
+    
 class Level:
     def __init__(self, walls=[], apples={}, collidables={}):
         self.walls = walls
@@ -116,64 +168,10 @@ class Snake:
             s.image.blit(s.x, s.y)
 
 
-level = Level.from_file('level.txt')
-snake = Snake(level)
+game = Game('level.txt')
 
+window.on_key_press = game.handle_key_press
+window.on_draw = game.draw_handler(window)
 
-@window.event
-def on_key_press(symbol, modifiers):
-    global snake
-    global level
-    global game_over
-    global win
-    global score
-    if symbol == key.LEFT:
-        snake.xdir = -1
-        snake.ydir = 0
-    elif symbol == key.RIGHT:
-        snake.xdir = 1
-        snake.ydir = 0
-    elif symbol == key.UP:
-        snake.xdir = 0
-        snake.ydir = 1
-    elif symbol == key.DOWN:
-        snake.xdir = 0
-        snake.ydir = -1
-    elif symbol == key.ENTER:
-        if game_over or win:
-            game_over = False
-            win = False
-            level = Level.from_file('level.txt')
-            snake = Snake(level)
-            score = 0
-
-@window.event
-def on_draw():
-    window.clear()
-    level.draw()
-    snake.draw()
-    score_label.text = "Score: %d" % score
-    score_label.draw()
-    if game_over:
-        game_over_label.draw()
-    if win:
-        win_label.draw()
-
-def update(dt):
-    global game_over
-    global score
-    global win
-    if not game_over and not win:
-        if (snake.x, snake.y) in level.apples.keys():
-            del(level.apples[(snake.x, snake.y)])
-            snake.tail_len += 1
-            score += 1
-            if level.apples == {}:
-                win = True
-        if (snake.x, snake.y) in level.collidables.keys():
-            game_over = True
-            return
-        snake.update(dt)
-
-pyglet.clock.schedule(update)
+pyglet.clock.schedule_interval(game.update, 1/60.0) # update game state at 60Hz
 pyglet.app.run()
