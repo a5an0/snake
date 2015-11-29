@@ -173,5 +173,5 @@ game = Game('level.txt')
 window.on_key_press = game.handle_key_press
 window.on_draw = game.draw_handler(window)
 
-pyglet.clock.schedule_interval(game.update, 1/60.0) # update game state at 60Hz
+pyglet.clock.schedule(game.update)
 pyglet.app.run()
