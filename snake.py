@@ -20,7 +20,7 @@ win_label = pyglet.text.Label('You Win!',
                                     anchor_x='center', anchor_y='center')
 score_label = pyglet.text.Label(font_name='Times New Roman',
                                 font_size=24,
-                                x=window.width * 0.75, y=window.height * 0.9,
+                                x=window.width * 0.75, y=window.height - 12,
                                 anchor_x='center', anchor_y='center')
 class Game:
     def __init__(self, level_file_name):
